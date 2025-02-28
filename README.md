@@ -3,7 +3,9 @@
 
 # Chatbot Application
 
-A simple React-based chatbot frontend that allows users to ask questions and receive responses in real-time. The application is integrated with a backend to fetch responses to user queries.
+This chatbot is designed to help users with **"how-to"** questions related to four popular **Customer Data Platforms (CDPs)**: Segment, mParticle, Lytics, and Zeotap. The bot fetches and delivers information directly from the official documentation of these platforms to guide users in performing various tasks or achieving specific outcomes.
+
+Whether you need assistance on how to set up tracking, integrate with other tools, or troubleshoot issues within any of these CDPs, the chatbot provides clear, real-time responses to help you through the process.
 
 ## Features
 
