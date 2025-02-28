@@ -31,10 +31,10 @@ export default function Chatbot() {
       });
       const data = await res.json();
       setResponse(data.answer || ""); // Empty if no response from bot
-    } catch (error) {
+    } catch {
       setResponse(""); // Handle error case
     }
-
+    
     setInput("");
   };
 
