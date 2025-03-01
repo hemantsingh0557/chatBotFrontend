@@ -3,71 +3,78 @@
 import { useState, useRef } from "react";
 
 export default function Chatbot() {
-  const [input, setInput] = useState(""); // Store the input text (user's question)
+  const [input, setInput] = useState(""); // Store the input text
   const [response, setResponse] = useState(""); // Store the response from the backend
+  const [loading, setLoading] = useState(false); // Track if waiting for a response
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"; // Default to localhost for dev
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Function to auto-resize the textarea
+  // Auto-resize textarea
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const textarea = textAreaRef.current;
     setInput(e.target.value);
-
-    // Adjust the height of the textarea dynamically
-    if (textarea) {
-      textarea.style.height = "auto";
-      textarea.style.height = `${textarea.scrollHeight}px`;
+    if (textAreaRef.current) {
+      textAreaRef.current.style.height = "auto";
+      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
     }
   };
 
-  // Function to send the question to the backend and get the response
+  // Send the question to the backend and get the response
   const sendMessage = async () => {
-    if (!input.trim()) return; // Don't send if the input is empty or only spaces
+    if (!input.trim()) return;
+
+    setLoading(true); // Start loading
 
     try {
-      // Send the question to the backend API
-      const res = await fetch("https://chat-botbackend-self.vercel.app/api/chatbot/ask", {
+      const res = await fetch(`${API_BASE_URL}/api/chatbot/ask`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: input }), // Send the question as JSON
+        body: JSON.stringify({ question: input }),
       });
 
-      // If the response is not OK, throw an error
-      if (!res.ok) {
-        throw new Error('Failed to fetch response from the backend.');
-      }
-
-      // Parse the response JSON
       const data = await res.json();
-      
-      // Set the response from the backend or display a default message if not present
-      setResponse(data.answer || "No answer provided");
+
+      if (data.found) {
+        setResponse(data.answer); // Display the found answer
+      } else {
+        setResponse(data.message); // Display "Sorry, no relevant data found."
+      }
     } catch {
-      setResponse("Error"); // Display error message if there's a failure
+      setResponse("Error fetching response. Please try again.");
+    } finally {
+      setLoading(false); // Stop loading
     }
 
-    setInput(""); // Clear input field after sending the message
+    setInput("");
   };
+
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-200 p-6">
-      {/* Left Side: Ask Question */}
-      <div className="w-full md:w-1/2 bg-white shadow-xl rounded-lg p-8 flex flex-col items-center mb-4 md:mb-0">
+      {/* Left Side: Input */}
+      <div className="w-full md:w-1/2 bg-white shadow-xl rounded-lg p-8 flex flex-col items-center">
         <h2 className="text-3xl font-bold text-blue-900 mb-5 text-center">Ask a Question</h2>
         <textarea
           ref={textAreaRef}
           value={input}
           onChange={handleInput}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()} // Allow sending on Enter key press
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault(); // Prevent new line
+              sendMessage();
+            }
+          }}
           placeholder="Type your question..."
           className="w-full p-3 border border-gray-400 rounded text-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[60px]"
-          rows={1} // Minimum rows
+          rows={1}
+          disabled={loading}
         />
         <button
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 mt-4 rounded-lg text-lg transition"
-          onClick={sendMessage} // Call the sendMessage function when the button is clicked
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 mt-4 rounded-lg text-lg transition disabled:bg-gray-400"
+          onClick={sendMessage}
+          disabled={loading}
         >
-          Send
+          {loading ? "Sending..." : "Send"}
         </button>
       </div>
 
@@ -75,9 +82,8 @@ export default function Chatbot() {
       <div className="w-full md:w-1/2 pl-8 flex flex-col justify-start">
         <div className="mt-0 p-4 bg-blue-100 border border-blue-300 rounded-lg text-blue-900 text-lg break-words">
           <h3 className="text-2xl font-semibold text-blue-800 mb-3">Response</h3>
-          {/* Display the response or a loading message if no response */}
-          <div className={`text-lg ${response ? '' : 'text-gray-400 italic'}`}>
-            {response || <span className="text-gray-400 italic">Waiting for a response...</span>}
+          <div className={`text-lg ${response ? "" : "text-gray-400 italic"}`}>
+            {loading ? "Waiting for a response..." : response || "Ask something!"}
           </div>
         </div>
       </div>
