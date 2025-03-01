@@ -6,6 +6,7 @@ export default function Chatbot() {
   const [input, setInput] = useState(""); // Store the input text
   const [response, setResponse] = useState(""); // Store the response from the backend
   const [loading, setLoading] = useState(false); // Track if waiting for a response
+  const [userQuestion, setUserQuestion] = useState(""); // Store the latest user question
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"; // Default to localhost for dev
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -23,6 +24,8 @@ export default function Chatbot() {
   const sendMessage = async () => {
     if (!input.trim()) return;
 
+    setUserQuestion(input); // Set the user's question in the response box
+    setResponse("Waiting for a response..."); // Show waiting message
     setLoading(true); // Start loading
 
     try {
@@ -35,9 +38,9 @@ export default function Chatbot() {
       const data = await res.json();
 
       if (data.found) {
-        setResponse(data.answer); // Display the found answer
+        setResponse(`${data.answer}`); // Display the backend's answer
       } else {
-        setResponse(data.message); // Display "Sorry, no relevant data found."
+        setResponse(data.message); // Display "No relevant data found"
       }
     } catch {
       setResponse("Error fetching response. Please try again.");
@@ -47,7 +50,6 @@ export default function Chatbot() {
 
     setInput("");
   };
-
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-200 p-6">
@@ -82,8 +84,13 @@ export default function Chatbot() {
       <div className="w-full md:w-1/2 pl-8 flex flex-col justify-start">
         <div className="mt-0 p-4 bg-blue-100 border border-blue-300 rounded-lg text-blue-900 text-lg break-words">
           <h3 className="text-2xl font-semibold text-blue-800 mb-3">Response</h3>
+          {/* Display user question at the top */}
+          {userQuestion && (
+            <div className="text-lg font-bold text-black mb-2">Question: {userQuestion}</div>
+          )}
+          {/* Display response from backend */}
           <div className={`text-lg ${response ? "" : "text-gray-400 italic"}`}>
-            {loading ? "Waiting for a response..." : response || "Ask something!"}
+            {response}
           </div>
         </div>
       </div>
