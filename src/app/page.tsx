@@ -78,6 +78,12 @@ export default function Chatbot() {
         >
           {loading ? "Sending..." : "Send"}
         </button>
+
+        <p className="mt-2 text-gray-600 text-lg">
+          Example Input: Type something like Learn, Node, or any topic you prefer.
+        </p>
+
+
       </div>
 
       {/* Right Side: Response */}
